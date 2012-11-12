@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EcoSystem
 {
-    class Class1
+    class Default
     {
     }
 }
