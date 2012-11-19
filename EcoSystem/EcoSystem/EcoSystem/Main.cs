@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using System.IO;
 
 namespace EcoSystem
 {
@@ -18,12 +19,26 @@ namespace EcoSystem
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        List<Texture2D> defaultForestTextures = new List<Texture2D>();
+        List<Texture2D> factoryForestTextures = new List<Texture2D>();
+        List<Texture2D> citadelForestTextures = new List<Texture2D>();
+        List<Texture2D> defaultUrbanTextures = new List<Texture2D>();
+        List<Texture2D> factoryUrbanTextures = new List<Texture2D>();
+        List<Texture2D> citadelUrbanTextures = new List<Texture2D>();
+        
+        const int BOARDSIZEX = 30;
+        const int BOARDSIZEY = 30;
+
+        Tile[,] board = new Tile[BOARDSIZEX,BOARDSIZEY];
+
+
 
         public Main()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
+
 
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
@@ -36,6 +51,14 @@ namespace EcoSystem
             // TODO: Add your initialization logic here
 
             base.Initialize();
+
+            for (int x = 0; x < BOARDSIZEX; x++)
+            {
+                for (int y = 0; y < BOARDSIZEX; y++)
+                {
+                    board[x, y] = new Tile(x, y, false, defaultForestTextures[0]);
+                }
+            }
         }
 
         /// <summary>
@@ -47,8 +70,40 @@ namespace EcoSystem
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            string folderPath;
+            int count;
+
+            folderPath = "Forest\\Default\\";
+            count = Directory.GetFiles("Content\\" + folderPath).Length;
+
+            for (int i = 0; i < count; i++)
+            {
+                try
+                {
+                    defaultForestTextures.Add(Content.Load<Texture2D>(folderPath + i.ToString()));
+                }
+                catch
+                {
+                    break;
+                }
+            }
+
+            folderPath = "Urban\\Default\\";
+            count = Directory.GetFiles("Content\\" + folderPath).Length;
+
+            for (int i = 0; i < count; i++)
+            {
+                try
+                {
+                    defaultUrbanTextures.Add(Content.Load<Texture2D>(folderPath + i.ToString()));
+                }
+                catch
+                {
+                    break;
+                }
+            }
         }
+
 
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
