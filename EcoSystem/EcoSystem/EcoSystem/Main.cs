@@ -26,8 +26,12 @@ namespace EcoSystem
         List<Texture2D> factoryUrbanTextures = new List<Texture2D>();
         List<Texture2D> citadelUrbanTextures = new List<Texture2D>();
         
-        const int BOARDSIZEX = 30;
+        const int BOARDSIZEX = 31;
         const int BOARDSIZEY = 30;
+        const int SPACINGX = 40;
+        const int SPACINGY = 25;
+        const int TILESCALEX = 48;
+        const int TILESCALEY = 50;
 
         Tile[,] board = new Tile[BOARDSIZEX,BOARDSIZEY];
 
@@ -37,6 +41,8 @@ namespace EcoSystem
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            graphics.PreferredBackBufferHeight = (BOARDSIZEY*SPACINGY)+SPACINGY;
+            graphics.PreferredBackBufferWidth = BOARDSIZEX*SPACINGX;
         }
 
 
@@ -52,11 +58,21 @@ namespace EcoSystem
 
             base.Initialize();
 
+            Random rnd = new Random();
+
             for (int x = 0; x < BOARDSIZEX; x++)
             {
-                for (int y = 0; y < BOARDSIZEX; y++)
+                for (int y = 0; y < BOARDSIZEY; y++)
                 {
-                    board[x, y] = new Tile(x, y, false, defaultForestTextures[0]);
+                    if ((x+y)>=(BOARDSIZEX+BOARDSIZEY)/2) {
+                        Texture2D rndText = defaultUrbanTextures[rnd.Next(0,defaultUrbanTextures.Count)];
+                        board[x, y] = new Tile(x, y, false, rndText);
+                    }
+                    else if ((x + y) < (BOARDSIZEX + BOARDSIZEY) / 2)
+                    {
+                        Texture2D rndText = defaultForestTextures[rnd.Next(0,defaultForestTextures.Count)];
+                        board[x, y] = new Tile(x, y, false, rndText);
+                    }
                 }
             }
         }
@@ -104,7 +120,6 @@ namespace EcoSystem
             }
         }
 
-
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
         /// all content.
@@ -136,9 +151,19 @@ namespace EcoSystem
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
+            spriteBatch.Begin();
 
             // TODO: Add your drawing code here
+            for (int y = 0; y < BOARDSIZEY; y++)
+            {
+                for (int x = 0; x < BOARDSIZEX; x++)
+                {
+                    spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
+                }
+            }
+
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }

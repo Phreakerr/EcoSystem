@@ -45,5 +45,10 @@ namespace EcoSystem
         {
             return isOnFire;
         }
+
+        public Texture2D getTexture()
+        {
+            return texture;
+        }
     }
 }
