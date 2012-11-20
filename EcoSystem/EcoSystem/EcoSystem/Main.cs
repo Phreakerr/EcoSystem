@@ -142,6 +142,13 @@ namespace EcoSystem
                 this.Exit();
 
             // TODO: Add your update logic here
+            MouseState mouseState = Mouse.GetState();
+
+
+            if (mouseState.LeftButton == ButtonState.Pressed)
+            {
+                Tile clickedTile = detectTileClicked(mouseState.X, mouseState.Y);
+            }
 
             base.Update(gameTime);
         }
@@ -167,6 +174,16 @@ namespace EcoSystem
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        Tile detectTileClicked(int X, int Y) {
+            int boardX, boardY;
+
+            boardX = (X / SPACINGX);
+            boardY = (Y / SPACINGY);
+
+            Console.Write(boardX + "; " + boardY + "\n");
+            return new Tile() ;
         }
     }
 }
