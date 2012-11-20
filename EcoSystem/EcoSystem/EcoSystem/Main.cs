@@ -29,7 +29,7 @@ namespace EcoSystem
         const int BOARDSIZEX = 31;
         const int BOARDSIZEY = 30;
         const int SPACINGX = 40;
-        const int SPACINGY = 25;
+        const int SPACINGY = 30;
         const int TILESCALEX = 48;
         const int TILESCALEY = 50;
 
@@ -59,6 +59,7 @@ namespace EcoSystem
             base.Initialize();
 
             Random rnd = new Random();
+            this.IsMouseVisible = true;
 
             for (int x = 0; x < BOARDSIZEX; x++)
             {
