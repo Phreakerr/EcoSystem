@@ -29,6 +29,7 @@ namespace EcoSystem
             coordY = Y;
             this.faction = faction;
             this.texture = texture;
+            position = new Vector2(X, Y);
         }
 
         public void fireStart()

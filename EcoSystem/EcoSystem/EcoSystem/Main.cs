@@ -19,6 +19,8 @@ namespace EcoSystem
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        MouseState prevMouseState;
+        MouseState currMouseState;
         List<Texture2D> defaultForestTextures = new List<Texture2D>();
         List<Texture2D> factoryForestTextures = new List<Texture2D>();
         List<Texture2D> citadelForestTextures = new List<Texture2D>();
@@ -29,11 +31,12 @@ namespace EcoSystem
         const int BOARDSIZEX = 31;
         const int BOARDSIZEY = 30;
         const int SPACINGX = 40;
-        const int SPACINGY = 30;
+        const int SPACINGY = 32;
         const int TILESCALEX = 48;
         const int TILESCALEY = 50;
 
         Tile[,] board = new Tile[BOARDSIZEX,BOARDSIZEY];
+        Tile selectedTile;
 
 
 
@@ -142,15 +145,21 @@ namespace EcoSystem
                 this.Exit();
 
             // TODO: Add your update logic here
-            MouseState mouseState = Mouse.GetState();
 
+            currMouseState = Mouse.GetState();
 
-            if (mouseState.LeftButton == ButtonState.Pressed)
+            if (prevMouseState.LeftButton == ButtonState.Released && currMouseState.LeftButton == ButtonState.Pressed)
             {
-                Tile clickedTile = detectTileClicked(mouseState.X, mouseState.Y);
+                detectTileClicked(prevMouseState.X, prevMouseState.Y);
+            }
+            else if (prevMouseState.RightButton == ButtonState.Released && currMouseState.RightButton == ButtonState.Pressed)
+            {
+                selectedTile = null;
             }
 
             base.Update(gameTime);
+
+            prevMouseState = Mouse.GetState();
         }
 
         /// <summary>
@@ -161,13 +170,22 @@ namespace EcoSystem
         {
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
+            Random rnd = new Random();
 
             // TODO: Add your drawing code here
             for (int y = 0; y < BOARDSIZEY; y++)
             {
                 for (int x = 0; x < BOARDSIZEX; x++)
                 {
-                    spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
+                    //spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
+                    if (selectedTile != null && x == selectedTile.position.X && y == selectedTile.position.Y)
+                    {
+                        spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), new Color(255,100,100));
+                    }
+                    else
+                    {
+                        spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
+                    }
                 }
             }
 
@@ -176,14 +194,29 @@ namespace EcoSystem
             base.Draw(gameTime);
         }
 
-        Tile detectTileClicked(int X, int Y) {
+        void detectTileClicked(int X, int Y) {
             int boardX, boardY;
 
             boardX = (X / SPACINGX);
             boardY = (Y / SPACINGY);
-
+            
             Console.Write(boardX + "; " + boardY + "\n");
-            return new Tile() ;
+
+            try
+            {
+                if (selectedTile == board[boardX, boardY])
+                {
+                    selectedTile = null;
+                }
+                else
+                {
+                    selectedTile = board[boardX, boardY];
+                }
+            }
+            catch
+            {
+                selectedTile = null;
+            }
         }
     }
 }
