@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System.IO;
+using System.Threading;
 
 namespace EcoSystem
 {
@@ -27,9 +28,10 @@ namespace EcoSystem
         List<Texture2D> defaultUrbanTextures = new List<Texture2D>();
         List<Texture2D> factoryUrbanTextures = new List<Texture2D>();
         List<Texture2D> citadelUrbanTextures = new List<Texture2D>();
+        List<Texture2D> menuIconTextures = new List<Texture2D>();
         
-        const int BOARDSIZEX = 31;
-        const int BOARDSIZEY = 30;
+        const int BOARDSIZEX = 25;
+        const int BOARDSIZEY = 24;
         const int SPACINGX = 40;
         const int SPACINGY = 32;
         const int TILESCALEX = 48;
@@ -44,7 +46,7 @@ namespace EcoSystem
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            graphics.PreferredBackBufferHeight = (BOARDSIZEY*SPACINGY)+SPACINGY;
+            graphics.PreferredBackBufferHeight = (BOARDSIZEY*SPACINGY)+SPACINGY+100;
             graphics.PreferredBackBufferWidth = BOARDSIZEX*SPACINGX;
         }
 
@@ -64,13 +66,16 @@ namespace EcoSystem
             Random rnd = new Random();
             this.IsMouseVisible = true;
 
+            Player forestPlayer = new Player();
+            Player urbanPlayer = new Player();
+
             for (int x = 0; x < BOARDSIZEX; x++)
             {
                 for (int y = 0; y < BOARDSIZEY; y++)
                 {
                     if ((x+y)>=(BOARDSIZEX+BOARDSIZEY)/2) {
                         Texture2D rndText = defaultUrbanTextures[rnd.Next(0,defaultUrbanTextures.Count)];
-                        board[x, y] = new Tile(x, y, false, rndText);
+                        board[x, y] = new Tile(x, y, true, rndText);
                     }
                     else if ((x + y) < (BOARDSIZEX + BOARDSIZEY) / 2)
                     {
@@ -122,6 +127,12 @@ namespace EcoSystem
                     break;
                 }
             }
+
+            menuIconTextures.Add(Content.Load<Texture2D>("Icons\\narrowAttack"));
+            menuIconTextures.Add(Content.Load<Texture2D>("Icons\\broadAttack"));
+            menuIconTextures.Add(Content.Load<Texture2D>("Icons\\fireAttack"));
+            menuIconTextures.Add(Content.Load<Texture2D>("Icons\\waterAttack"));
+            menuIconTextures.Add(Content.Load<Texture2D>("Icons\\upgradeAttack"));
         }
 
         /// <summary>
@@ -189,6 +200,12 @@ namespace EcoSystem
                 }
             }
 
+            spriteBatch.Draw(menuIconTextures[0], new Rectangle(((menuIconTextures[0].Width + 10) * 0)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            spriteBatch.Draw(menuIconTextures[1], new Rectangle(((menuIconTextures[0].Width + 10) * 1)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            spriteBatch.Draw(menuIconTextures[2], new Rectangle(((menuIconTextures[0].Width + 10) * 2)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            spriteBatch.Draw(menuIconTextures[3], new Rectangle(((menuIconTextures[0].Width + 10) * 3)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            spriteBatch.Draw(menuIconTextures[4], new Rectangle(((menuIconTextures[0].Width + 10) * 4)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -199,10 +216,8 @@ namespace EcoSystem
 
             boardX = (X / SPACINGX);
             boardY = (Y / SPACINGY);
-            
-            Console.Write(boardX + "; " + boardY + "\n");
 
-            try
+            if (Y < BOARDSIZEY * SPACINGY && X < BOARDSIZEX * SPACINGX)
             {
                 if (selectedTile == board[boardX, boardY])
                 {
@@ -213,10 +228,67 @@ namespace EcoSystem
                     selectedTile = board[boardX, boardY];
                 }
             }
-            catch
+            else
             {
-                selectedTile = null;
+                if (Y > graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10 && Y < graphics.PreferredBackBufferHeight - 10)
+                {
+                    int menuIconPressed = X / (menuIconTextures[0].Width + 10);
+                    Console.Write(menuIconPressed);
+
+                    Thread thread;
+
+                    switch (menuIconPressed)
+                    {
+                        case 0:
+                            thread = new Thread(new ThreadStart(narrowAttack));
+                            thread.Start();
+                            break;
+                        case 1:
+                            thread = new Thread(new ThreadStart(broadAttack));
+                            thread.Start();
+                            break;
+                        case 2:
+                            thread = new Thread(new ThreadStart(fireAttack));
+                            thread.Start();
+                            break;
+                        case 3:
+                            thread = new Thread(new ThreadStart(waterAttack));
+                            thread.Start();
+                            break;
+                        case 4:
+                            thread = new Thread(new ThreadStart(upgradeUnit));
+                            thread.Start();
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
+        }
+
+        private void upgradeUnit()
+        {
+            Console.Write("Upgrade");
+        }
+
+        private void waterAttack()
+        {
+            Console.Write("Water");
+        }
+
+        private void fireAttack()
+        {
+            Console.Write("Fire");
+        }
+
+        private void broadAttack()
+        {
+            Console.Write("Broad");
+        }
+
+        private void narrowAttack()
+        {
+            Console.Write("Narrow");
         }
     }
 }
