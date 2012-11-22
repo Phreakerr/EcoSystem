@@ -37,6 +37,12 @@ namespace EcoSystem
         const int TILESCALEX = 48;
         const int TILESCALEY = 50;
 
+        const int NARROWCOST = 1000;
+        const int BROADCOST = 1000;
+        const int FIRECOST = 2000;
+        const int WATERCOST = 1000;
+        const int UPGRADECOST = 5000;
+
         Player forestPlayer;
         Player urbanPlayer;
 
@@ -44,6 +50,8 @@ namespace EcoSystem
         Tile selectedTile;
 
         SpriteFont resourceFont;
+
+        FrameAnimation fire;
 
 
         public Main()
@@ -141,6 +149,8 @@ namespace EcoSystem
             menuIconTextures.Add(Content.Load<Texture2D>("Icons\\upgradeAttack"));
 
             resourceFont = Content.Load<SpriteFont>("Resources");
+
+            fire = new FrameAnimation(Content.Load<Texture2D>("fireAnimation"), 5);
         }
 
         /// <summary>
@@ -183,6 +193,8 @@ namespace EcoSystem
             forestPlayer.resources++;
             urbanPlayer.resources++;
 
+            fire.nextFrame();
+
             base.Update(gameTime);
 
             prevMouseState = Mouse.GetState();
@@ -194,17 +206,21 @@ namespace EcoSystem
 
             foreach (Tile tile in board)
             {
-                if (tile.checkFire() && rndSpread.Next(0, 250) == 7)
+                if (tile.checkFire() && rndSpread.Next(0, 250) == 7) //Lucky number 7
                 {
                     Random rndPosition = new Random();
                     try
                     {
-                        board[(int)tile.position.X + rndPosition.Next(-1, 1), (int)tile.position.Y + rndPosition.Next(-1, 1)].fireStart();
+                        board[(int)tile.position.X + rndPosition.Next(-1, 2), (int)tile.position.Y + rndPosition.Next(-1, 2)].fireStart();
                     }
                     catch
                     {
 
                     }
+                }
+                else if (tile.checkFire() && rndSpread.Next(0, 650) == 8 || forestPlayer.resources>7000)
+                {
+                    tile.fireExtinguish();
                 }
             }
         }
@@ -213,7 +229,21 @@ namespace EcoSystem
         {
             foreach (Tile tile in board)
             {
-                tile.checkDestroyed();
+                if(tile.checkDestroyed())
+                {
+                    Random rnd = new Random();
+
+                    if (!tile.faction)
+                    {
+                        Texture2D rndText = defaultUrbanTextures[rnd.Next(0,defaultUrbanTextures.Count)];
+                        board[(int)tile.position.X, (int)tile.position.Y] = new Tile((int)tile.position.X, (int)tile.position.Y, true, rndText);
+                    }
+                    else if (tile.faction)
+                    {
+                        Texture2D rndText = defaultForestTextures[rnd.Next(0, defaultForestTextures.Count)];
+                        board[(int)tile.position.X, (int)tile.position.Y] = new Tile((int)tile.position.X, (int)tile.position.Y, false, rndText);
+                    }
+                }
             }
         }
 
@@ -247,29 +277,68 @@ namespace EcoSystem
                     }
                     else
                     {
-                        if (board[x, y].checkFire())
-                        {
-                            spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.Red);
-                        }
-                        else if (board[x, y].checkDestroyed())
-                        {
-                            spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.Black);
-                        }
-                        else
-                        {
                             spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
-                        }
+                    }
+
+                    if (board[x, y].checkFire())
+                    {
+                        fire.Position = new Vector2(x*SPACINGX, y*SPACINGY);
+                        //fire.Draw(spriteBatch);
+                        spriteBatch.Draw(fire.Texture, fire.Position, fire.Rectangles[fire.FrameIndex], fire.Color, fire.Rotation, fire.Origin, fire.Scale, fire.SpriteEffect, 0f);
                     }
                 }
             }
 
-            spriteBatch.Draw(menuIconTextures[0], new Rectangle(((menuIconTextures[0].Width + 10) * 0)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
-            spriteBatch.Draw(menuIconTextures[1], new Rectangle(((menuIconTextures[0].Width + 10) * 1)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
-            spriteBatch.Draw(menuIconTextures[2], new Rectangle(((menuIconTextures[0].Width + 10) * 2)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
-            spriteBatch.Draw(menuIconTextures[3], new Rectangle(((menuIconTextures[0].Width + 10) * 3)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
-            spriteBatch.Draw(menuIconTextures[4], new Rectangle(((menuIconTextures[0].Width + 10) * 4)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            #region Menu Buttons
+            if (forestPlayer.resources < NARROWCOST || selectedTile == null)
+            {
+                spriteBatch.Draw(menuIconTextures[0], new Rectangle(((menuIconTextures[0].Width + 10) * 0) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.Crimson);
+            }
+            else
+            {
+                spriteBatch.Draw(menuIconTextures[0], new Rectangle(((menuIconTextures[0].Width + 10) * 0) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            }
+
+            if (forestPlayer.resources < BROADCOST || selectedTile == null)
+            {
+                spriteBatch.Draw(menuIconTextures[1], new Rectangle(((menuIconTextures[0].Width + 10) * 1) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.Crimson);
+            }
+            else
+            {
+                spriteBatch.Draw(menuIconTextures[1], new Rectangle(((menuIconTextures[0].Width + 10) * 1) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            }
+
+            if (forestPlayer.resources < FIRECOST || selectedTile == null)
+            {
+                spriteBatch.Draw(menuIconTextures[2], new Rectangle(((menuIconTextures[0].Width + 10) * 2) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.Crimson);
+            }
+
+            else
+            {
+                spriteBatch.Draw(menuIconTextures[2], new Rectangle(((menuIconTextures[0].Width + 10) * 2) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            }
+
+            if (forestPlayer.resources < WATERCOST || selectedTile == null)
+            {
+                spriteBatch.Draw(menuIconTextures[3], new Rectangle(((menuIconTextures[0].Width + 10) * 3) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.Crimson);
+            }
+
+            else
+            {
+                spriteBatch.Draw(menuIconTextures[3], new Rectangle(((menuIconTextures[0].Width + 10) * 3) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            }
+
+            if (forestPlayer.resources < UPGRADECOST || selectedTile == null)
+            {
+                spriteBatch.Draw(menuIconTextures[4], new Rectangle(((menuIconTextures[0].Width + 10) * 4) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.Crimson);
+            }
+            else
+            {
+                spriteBatch.Draw(menuIconTextures[4], new Rectangle(((menuIconTextures[0].Width + 10) * 4) + 10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+            }
 
             spriteBatch.DrawString(resourceFont, "Resources: " + forestPlayer.resources, new Vector2(graphics.PreferredBackBufferWidth - 10, graphics.PreferredBackBufferHeight - 10), Color.White, 0, resourceFont.MeasureString("Resources: " + forestPlayer.resources), 1, SpriteEffects.None, 0);
+            #endregion
 
             spriteBatch.End();
 
