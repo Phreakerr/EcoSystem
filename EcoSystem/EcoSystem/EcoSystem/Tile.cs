@@ -17,6 +17,7 @@ namespace EcoSystem
         private int coordX;
         private int coordY;
         private bool isOnFire;
+        private Random rndFireDamage;
 
         public Tile()
         {
@@ -27,9 +28,11 @@ namespace EcoSystem
         {
             coordX = X;
             coordY = Y;
+            health = 100;
             this.faction = faction;
             this.texture = texture;
             position = new Vector2(X, Y);
+            rndFireDamage = new Random();
         }
 
         public void fireStart()
@@ -50,6 +53,32 @@ namespace EcoSystem
         public Texture2D getTexture()
         {
             return texture;
+        }
+
+        public void fireDamage()
+        {
+            if (isOnFire && rndFireDamage.Next(0, 60) == 7) //Lucky number 7
+            {
+                health -= 5;
+            }
+        }
+
+        public void spreadFire()
+        {
+
+        }
+
+        public bool checkDestroyed()
+        {
+            if (health <= 0)
+            {
+                fireExtinguish();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

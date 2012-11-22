@@ -37,9 +37,13 @@ namespace EcoSystem
         const int TILESCALEX = 48;
         const int TILESCALEY = 50;
 
+        Player forestPlayer;
+        Player urbanPlayer;
+
         Tile[,] board = new Tile[BOARDSIZEX,BOARDSIZEY];
         Tile selectedTile;
 
+        SpriteFont resourceFont;
 
 
         public Main()
@@ -66,8 +70,8 @@ namespace EcoSystem
             Random rnd = new Random();
             this.IsMouseVisible = true;
 
-            Player forestPlayer = new Player();
-            Player urbanPlayer = new Player();
+            forestPlayer = new Player();
+            urbanPlayer = new Player();
 
             for (int x = 0; x < BOARDSIZEX; x++)
             {
@@ -84,6 +88,8 @@ namespace EcoSystem
                     }
                 }
             }
+
+            board[15, 12].fireStart();
         }
 
         /// <summary>
@@ -133,6 +139,8 @@ namespace EcoSystem
             menuIconTextures.Add(Content.Load<Texture2D>("Icons\\fireAttack"));
             menuIconTextures.Add(Content.Load<Texture2D>("Icons\\waterAttack"));
             menuIconTextures.Add(Content.Load<Texture2D>("Icons\\upgradeAttack"));
+
+            resourceFont = Content.Load<SpriteFont>("Resources");
         }
 
         /// <summary>
@@ -168,9 +176,53 @@ namespace EcoSystem
                 selectedTile = null;
             }
 
+            spreadFires();
+            doFireDamage();
+            checkDeadTiles();
+
+            forestPlayer.resources++;
+            urbanPlayer.resources++;
+
             base.Update(gameTime);
 
             prevMouseState = Mouse.GetState();
+        }
+
+        private void spreadFires()
+        {
+            Random rndSpread = new Random();
+
+            foreach (Tile tile in board)
+            {
+                if (tile.checkFire() && rndSpread.Next(0, 250) == 7)
+                {
+                    Random rndPosition = new Random();
+                    try
+                    {
+                        board[(int)tile.position.X + rndPosition.Next(-1, 1), (int)tile.position.Y + rndPosition.Next(-1, 1)].fireStart();
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            }
+        }
+
+        private void checkDeadTiles()
+        {
+            foreach (Tile tile in board)
+            {
+                tile.checkDestroyed();
+            }
+        }
+
+        private void doFireDamage()
+        {
+            foreach (Tile tile in board)
+            {
+                tile.fireDamage();
+            }
         }
 
         /// <summary>
@@ -195,7 +247,18 @@ namespace EcoSystem
                     }
                     else
                     {
-                        spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
+                        if (board[x, y].checkFire())
+                        {
+                            spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.Red);
+                        }
+                        else if (board[x, y].checkDestroyed())
+                        {
+                            spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.Black);
+                        }
+                        else
+                        {
+                            spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
+                        }
                     }
                 }
             }
@@ -205,6 +268,8 @@ namespace EcoSystem
             spriteBatch.Draw(menuIconTextures[2], new Rectangle(((menuIconTextures[0].Width + 10) * 2)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
             spriteBatch.Draw(menuIconTextures[3], new Rectangle(((menuIconTextures[0].Width + 10) * 3)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
             spriteBatch.Draw(menuIconTextures[4], new Rectangle(((menuIconTextures[0].Width + 10) * 4)+10, graphics.PreferredBackBufferHeight - menuIconTextures[0].Height - 10, menuIconTextures[0].Height, menuIconTextures[0].Width), Color.White);
+
+            spriteBatch.DrawString(resourceFont, "Resources: " + forestPlayer.resources, new Vector2(graphics.PreferredBackBufferWidth - 10, graphics.PreferredBackBufferHeight - 10), Color.White, 0, resourceFont.MeasureString("Resources: " + forestPlayer.resources), 1, SpriteEffects.None, 0);
 
             spriteBatch.End();
 
@@ -217,7 +282,7 @@ namespace EcoSystem
             boardX = (X / SPACINGX);
             boardY = (Y / SPACINGY);
 
-            if (Y < BOARDSIZEY * SPACINGY && X < BOARDSIZEX * SPACINGX)
+            if (Y < BOARDSIZEY * SPACINGY && X < BOARDSIZEX * SPACINGX && X >= 0 && Y >=0)
             {
                 if (selectedTile == board[boardX, boardY])
                 {

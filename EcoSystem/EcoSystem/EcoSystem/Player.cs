@@ -7,9 +7,15 @@ namespace EcoSystem
 {
     class Player
     {
-        int resources;
-        int numberOfFactories;
-        bool citadelStanding;
+        public int resources;
+        public int numberOfFactories;
+        public bool citadelStanding;
 
+        public Player()
+        {
+            resources = 0;
+            numberOfFactories = 0;
+            citadelStanding = true;
+        }
     }
 }
