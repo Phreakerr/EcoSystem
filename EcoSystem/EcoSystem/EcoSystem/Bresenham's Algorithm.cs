@@ -8,6 +8,8 @@ namespace EcoSystem
 {
     class Bresenham
     {
+
+        //THIS CODE IS WRITTEN BY ERIC WOROSHOW OF WWW.ERICW.CA, 20/05/2010
         public static IEnumerable<Point> GetPointsOnLine(int x0, int y0, int x1, int y1)
         {
             bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);

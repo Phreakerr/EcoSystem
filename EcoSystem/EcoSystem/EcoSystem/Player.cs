@@ -15,7 +15,7 @@ namespace EcoSystem
         public Player(bool faction)
         {
             this.faction = faction;
-            resources = 0;
+            resources = 500;
             numberOfFactories = 0;
             citadelStanding = true;
         }
