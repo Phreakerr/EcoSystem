@@ -188,240 +188,6 @@ namespace EcoSystem
             base.Update(gameTime);
         }
 
-        private void doAI()
-        {
-            if (rnd.Next(0, AIAGGRESSION) == 7)
-            {
-                if (AIPlayer.resources >= NARROWCOST)
-                    AINarrow();
-            }
-
-            if (rnd.Next(0, AIAGGRESSION) == 8)
-            {
-                if (AIPlayer.resources >= BROADCOST)
-                    AIBroad();
-            }
-
-            if (rnd.Next(0, AIAGGRESSION) == 9)
-            {
-                if (AIPlayer.resources >= FIRECOST)
-                    AIFire();
-            }
-
-            if (rnd.Next(0, AIAGGRESSION) == 10)
-            {
-                if (AIPlayer.resources >= WATERCOST)
-                    AIWater();
-            }
-
-            if (rnd.Next(0, AIAGGRESSION) == 11)
-            {
-                if (AIPlayer.resources >= UPGRADECOST)
-                    AIUpgrade();
-            }
-        }
-
-        private void AIUpgrade()
-        {
-            bool tileIsOwned = false;
-
-            do
-            {
-                int x = rnd.Next(0, BOARDSIZEX);
-                int y = rnd.Next(0, BOARDSIZEY);
-
-                if (board[x, y].faction == AIPlayer.faction)
-                {
-                    tileIsOwned = true;
-                    board[x, y].upgrade();
-                    AIPlayer.numberOfFactories++;
-                    AIPlayer.resources -= UPGRADECOST;
-                }
-
-            } while (!tileIsOwned);
-
-
-            Console.WriteLine("Building factory");
-        }
-
-        private void AIWater()
-        {
-            bool fireExists = false;
-
-            foreach (Tile tile in board)
-            {
-                if (tile.faction == AIPlayer.faction && tile.checkFire())
-                {
-                    fireExists = true;
-                }
-            }
-
-            if (fireExists)
-            {
-                List<Tile> tilesOnFire = new List<Tile>();
-
-                foreach (Tile tile in board)
-                {
-                    if (tile.faction == AIPlayer.faction && tile.checkFire())
-                    {
-                        tilesOnFire.Add(tile);
-                    }
-                }
-
-                Tile tileToPutOut = tilesOnFire[rnd.Next(0, tilesOnFire.Count)];
-
-                for (int x = -2; x <= 2; x++)
-                {
-                    for (int y = -2; y <= 2; y++)
-                    {
-                        try
-                        {
-                            board[(int)tileToPutOut.position.X + x, (int)tileToPutOut.position.Y + y].fireExtinguish();
-                        }
-                        catch
-                        {
-
-                        }
-                    }
-                }
-
-                Console.WriteLine("Putting out fires");
-            }
-        }
-
-        private void AIFire()
-        {
-            Console.WriteLine("Setting fires");
-
-            List<Tile> validTiles = new List<Tile>();
-
-            foreach (Tile tile in board)
-            {
-                bool tileIsValid = true;
-
-                if (tile.faction != AIPlayer.faction)
-                {
-                    for (int x = -1; x <= 1; x++)
-                    {
-                        for (int y = -1; y <= 1; y++)
-                        {
-                            try
-                            {
-                                if (board[(int)tile.position.X + x, (int)tile.position.Y + y].faction == AIPlayer.faction)
-                                    tileIsValid = false;
-                            }
-                            catch
-                            {
-
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    tileIsValid = false;
-                }
-
-                if (tileIsValid)
-                    validTiles.Add(tile);
-            }
-
-            bool attackFinished = false;
-
-            do
-            {
-                if (validTiles.Count == 0)
-                {
-                    attackFinished = true;
-                }
-                else
-                {
-                    Tile tile = validTiles[rnd.Next(0, validTiles.Count)];
-                    bool friendlyTileNearby = false;
-
-                    for (int x = -4; x <= 4; x++)
-                    {
-                        for (int y = -4; y <= 4; y++)
-                        {
-                            try
-                            {
-                                if (board[(int)tile.position.X + x, (int)tile.position.Y + y].faction == AIPlayer.faction)
-                                {
-                                    friendlyTileNearby = true;
-                                }
-                            } 
-                            catch
-                            {
-                            
-                            }
-                        }
-                    }
-
-                    if (friendlyTileNearby)
-                    {
-                        for (int x = -1; x <= 1; x++)
-                        {
-                            for (int y = -1; y <= 1; y++)
-                            {
-                                try
-                                {
-                                    board[(int)tile.position.X + x, (int)tile.position.Y + y].fireStart();
-
-                                }
-                                catch
-                                {
-
-                                }
-                            }
-                        }
-                        attackFinished = true;
-                    }
-                    else
-                    {
-                        validTiles.Remove(tile);
-                    }
-                }
-            } while (!attackFinished);
-        }
-
-        private void AIBroad()
-        {
-            //throw new NotImplementedException();
-        }
-
-        private void AINarrow()
-        {
-            //throw new NotImplementedException();
-        }
-
-        private void checkForWin()
-        {
-            bool forestRemaining = false;
-            bool urbanRemaining = false;
-
-            foreach (Tile tile in board)
-            {
-                if (!tile.faction)
-                    forestRemaining = true;
-                else if (tile.faction)
-                    urbanRemaining = true;
-            }
-
-            if (!forestRemaining)
-                endGame(true);
-            else if (!urbanRemaining)
-                endGame(false);
-        }
-
-        private void endGame(bool faction)
-        {
-            gameIsOver = true;
-            if (faction)
-                messageText = "The city wins!";
-            else if (!faction)
-                messageText = "The forest wins!";
-        }
-
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -515,6 +281,382 @@ namespace EcoSystem
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void doAI()
+        {
+            Thread thread;
+            if (rnd.Next(0, AIAGGRESSION) == 7)
+            {
+                if (AIPlayer.resources >= NARROWCOST)
+                {
+                    thread = new Thread(new ThreadStart(AINarrow));
+                    thread.Start();
+                }
+            }
+
+            else if (rnd.Next(0, AIAGGRESSION) == 8)
+            {
+                if (AIPlayer.resources >= BROADCOST)
+                {
+                    thread = new Thread(new ThreadStart(AIBroad));
+                    thread.Start();
+                }
+            }
+
+            else if (rnd.Next(0, AIAGGRESSION) == 9)
+            {
+                if (AIPlayer.resources >= FIRECOST)
+                {
+                    thread = new Thread(new ThreadStart(AIFire));
+                    thread.Start();
+                }
+            }
+
+            else if (rnd.Next(0, AIAGGRESSION) == 10)
+            {
+                if (AIPlayer.resources >= WATERCOST)
+                {
+                    thread = new Thread(new ThreadStart(AIWater));
+                    thread.Start();
+                }
+            }
+
+            else if (rnd.Next(0, AIAGGRESSION) == 11)
+            {
+                if (AIPlayer.resources >= UPGRADECOST)
+                {
+                    thread = new Thread(new ThreadStart(AIUpgrade));
+                    thread.Start();
+                }
+            }
+        }
+
+        private void AIUpgrade()
+        {
+            bool tileIsOwned = false;
+
+            do
+            {
+                int x = rnd.Next(0, BOARDSIZEX);
+                int y = rnd.Next(0, BOARDSIZEY);
+
+                if (board[x, y].faction == AIPlayer.faction)
+                {
+                    tileIsOwned = true;
+                    board[x, y].upgrade();
+                    AIPlayer.numberOfFactories++;
+                    AIPlayer.resources -= UPGRADECOST;
+                }
+
+            } while (!tileIsOwned);
+
+
+            Console.WriteLine("Building factory");
+        }
+
+        private void AIWater()
+        {
+            bool fireExists = false;
+
+            foreach (Tile tile in board)
+            {
+                if (tile.faction == AIPlayer.faction && tile.checkFire())
+                {
+                    fireExists = true;
+                }
+            }
+
+            if (fireExists)
+            {
+                List<Tile> tilesOnFire = new List<Tile>();
+
+                foreach (Tile tile in board)
+                {
+                    if (tile.faction == AIPlayer.faction && tile.checkFire())
+                    {
+                        tilesOnFire.Add(tile);
+                    }
+                }
+
+                Tile tileToPutOut = tilesOnFire[rnd.Next(0, tilesOnFire.Count)];
+
+                for (int x = -2; x <= 2; x++)
+                {
+                    for (int y = -2; y <= 2; y++)
+                    {
+                        try
+                        {
+                            board[(int)tileToPutOut.position.X + x, (int)tileToPutOut.position.Y + y].fireExtinguish();
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }
+
+
+                AIPlayer.resources -= WATERCOST;
+
+                Console.WriteLine("Putting out fires");
+            }
+        }
+
+        private void AIFire()
+        {
+            Console.WriteLine("Setting fires");
+
+            List<Tile> validTiles = new List<Tile>();
+
+            foreach (Tile tile in board)
+            {
+                bool tileIsValid = true;
+
+                if (tile.faction != AIPlayer.faction)
+                {
+                    for (int x = -1; x <= 1; x++)
+                    {
+                        for (int y = -1; y <= 1; y++)
+                        {
+                            try
+                            {
+                                if (board[(int)tile.position.X + x, (int)tile.position.Y + y].faction == AIPlayer.faction)
+                                    tileIsValid = false;
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    tileIsValid = false;
+                }
+
+                if (tileIsValid)
+                    validTiles.Add(tile);
+            }
+
+            bool attackFinished = false;
+
+            do
+            {
+                if (validTiles.Count == 0)
+                {
+                    attackFinished = true;
+                }
+                else
+                {
+                    Tile tile = validTiles[rnd.Next(0, validTiles.Count)];
+                    bool friendlyTileNearby = false;
+
+                    for (int x = -4; x <= 4; x++)
+                    {
+                        for (int y = -4; y <= 4; y++)
+                        {
+                            try
+                            {
+                                if (board[(int)tile.position.X + x, (int)tile.position.Y + y].faction == AIPlayer.faction)
+                                {
+                                    friendlyTileNearby = true;
+                                }
+                            } 
+                            catch
+                            {
+                            
+                            }
+                        }
+                    }
+
+                    if (friendlyTileNearby)
+                    {
+                        for (int x = -1; x <= 1; x++)
+                        {
+                            for (int y = -1; y <= 1; y++)
+                            {
+                                try
+                                {
+                                    board[(int)tile.position.X + x, (int)tile.position.Y + y].fireStart();
+
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+                        }
+
+                        AIPlayer.resources -= FIRECOST;
+                        attackFinished = true;
+                    }
+                    else
+                    {
+                        validTiles.Remove(tile);
+                    }
+                }
+            } while (!attackFinished);
+        }
+
+        private void AIBroad()
+        {
+            Console.WriteLine("Broad attack");
+
+            bool validMoveTaken = false;
+
+            Tile sourceTile = null;
+            Tile targetTile = null;
+
+            do
+            {
+                Tile chosenSource = board[rnd.Next(0, BOARDSIZEX), rnd.Next(0, BOARDSIZEY)];
+
+                if (chosenSource.faction == AIPlayer.faction)
+                {
+                    for (int x = -2; x <= 2; x++)
+                    {
+                        for (int y = -2; y <= 2; y++)
+                        {
+                            try
+                            {
+                                if (board[(int)chosenSource.position.X + x, (int)chosenSource.position.Y + y].faction != AIPlayer.faction)
+                                {
+                                    sourceTile = chosenSource;
+                                    targetTile = board[(int)chosenSource.position.X + x, (int)chosenSource.position.Y + y];
+                                    validMoveTaken = true;
+                                }
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
+                }
+
+                if (sourceTile != null)
+                {
+                    foreach (Point point in Bresenham.GetPointsOnLine((int)sourceTile.position.X, (int)sourceTile.position.Y, (int)targetTile.position.X, (int)targetTile.position.Y))
+                    {
+
+                        for (int x = -1; x <= 1; x++)
+                        {
+                            for (int y = -1; y <= 1; y++)
+                            {
+                                try
+                                {
+                                    if (board[point.X + x, point.Y + y].faction != AIPlayer.faction)
+                                        board[point.X + x, point.Y + y].doDamage(rnd.Next(10, 150));
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+                        }
+                    }
+
+                    AIPlayer.resources -= BROADCOST;
+                }
+
+            } while (!validMoveTaken);
+
+        }
+
+        private void AINarrow()
+        {
+            Console.WriteLine("Narrow attack");
+
+            bool validMoveTaken = false;
+
+            Tile sourceTile = null;
+            Tile targetTile = null;
+
+            do
+            {
+                Tile chosenSource = board[rnd.Next(0, BOARDSIZEX), rnd.Next(0, BOARDSIZEY)];
+
+                if (chosenSource.faction == AIPlayer.faction)
+                {
+                    for (int x = 5; x >= -5; x--)
+                    {
+                        for (int y = 5; y >= -5; y--)
+                        {
+                            try
+                            {
+                                if (board[(int)chosenSource.position.X + x, (int)chosenSource.position.Y + y].faction != AIPlayer.faction)
+                                {
+                                    sourceTile = chosenSource;
+                                    targetTile = board[(int)chosenSource.position.X + x, (int)chosenSource.position.Y + y];
+                                    validMoveTaken = true;
+                                }
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
+                }
+
+                if (sourceTile != null)
+                {
+                    foreach (Point point in Bresenham.GetPointsOnLine((int)sourceTile.position.X, (int)sourceTile.position.Y, (int)targetTile.position.X, (int)targetTile.position.Y))
+                    {
+
+                        for (int x = -1; x <= 1; x++)
+                        {
+                            for (int y = -1; y <= 1; y++)
+                            {
+                                try
+                                {
+                                    if (board[point.X + x, point.Y + y].faction != AIPlayer.faction)
+                                        board[point.X + x, point.Y + y].doDamage(rnd.Next(10, 50));
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+                        }
+                        if (board[point.X, point.Y].faction != AIPlayer.faction)
+                            board[point.X, point.Y].doDamage(100);
+                    }
+
+                    AIPlayer.resources -= NARROWCOST;
+                }
+
+            } while (!validMoveTaken);
+        }
+
+        private void checkForWin()
+        {
+            bool forestRemaining = false;
+            bool urbanRemaining = false;
+
+            foreach (Tile tile in board)
+            {
+                if (!tile.faction)
+                    forestRemaining = true;
+                else if (tile.faction)
+                    urbanRemaining = true;
+            }
+
+            if (!forestRemaining)
+                endGame(true);
+            else if (!urbanRemaining)
+                endGame(false);
+        }
+
+        private void endGame(bool faction)
+        {
+            gameIsOver = true;
+            if (faction)
+                messageText = "The city wins!";
+            else if (!faction)
+                messageText = "The forest wins!";
         }
 
         private void generateBoard()
