@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcoSystem", "EcoSystem\EcoSystem\EcoSystem.csproj", "{6F5782A8-280D-4AFE-9E02-5E79C440338C}"
 EndProject
-Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "EcoSystemContent", "EcoSystem\EcoSystemContent\EcoSystemContent.contentproj", "{62B474CA-763B-4293-9DA2-AE56AE1D9592}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcoSystemContent", "EcoSystem\EcoSystemContent\EcoSystemContent.contentproj", "{62B474CA-763B-4293-9DA2-AE56AE1D9592}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcoSystem Launcher", "EcoSystem Launcher\EcoSystem Launcher.csproj", "{A0022E81-7291-4512-84FA-C08CF8B6151D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,6 +19,10 @@ Global
 		{6F5782A8-280D-4AFE-9E02-5E79C440338C}.Release|x86.Build.0 = Release|x86
 		{62B474CA-763B-4293-9DA2-AE56AE1D9592}.Debug|x86.ActiveCfg = Debug|x86
 		{62B474CA-763B-4293-9DA2-AE56AE1D9592}.Release|x86.ActiveCfg = Release|x86
+		{A0022E81-7291-4512-84FA-C08CF8B6151D}.Debug|x86.ActiveCfg = Debug|x86
+		{A0022E81-7291-4512-84FA-C08CF8B6151D}.Debug|x86.Build.0 = Debug|x86
+		{A0022E81-7291-4512-84FA-C08CF8B6151D}.Release|x86.ActiveCfg = Release|x86
+		{A0022E81-7291-4512-84FA-C08CF8B6151D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

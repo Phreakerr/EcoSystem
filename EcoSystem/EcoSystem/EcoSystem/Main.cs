@@ -16,7 +16,7 @@ namespace EcoSystem
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    public class Main : Microsoft.Xna.Framework.Game
+    public class EcoSystemGame : Microsoft.Xna.Framework.Game
     {
         #region Global variables
         GraphicsDeviceManager graphics;
@@ -68,7 +68,7 @@ namespace EcoSystem
         Random rnd = new Random();
         #endregion
 
-        public Main()
+        public EcoSystemGame()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
