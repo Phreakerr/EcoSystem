@@ -30,6 +30,7 @@ namespace EcoSystem
         List<Texture2D> factoryUrbanTextures = new List<Texture2D>();
         List<Texture2D> citadelUrbanTextures = new List<Texture2D>();
         List<Texture2D> menuIconTextures = new List<Texture2D>();
+        Texture2D upgradedMarker;
         
         const int BOARDSIZEX = 19;
         const int BOARDSIZEY = 18;
@@ -150,7 +151,7 @@ namespace EcoSystem
             menuIconTextures.Add(Content.Load<Texture2D>("Icons\\fireAttack"));
             menuIconTextures.Add(Content.Load<Texture2D>("Icons\\waterAttack"));
             menuIconTextures.Add(Content.Load<Texture2D>("Icons\\upgradeAttack"));
-
+            upgradedMarker = (Content.Load<Texture2D>("marker"));
             resourceFont = Content.Load<SpriteFont>("Resources");
 
             fire = new FrameAnimation(Content.Load<Texture2D>("fireAnimation"), 5);
@@ -210,6 +211,11 @@ namespace EcoSystem
                     else
                     {
                             spriteBatch.Draw(board[x, y].getTexture(), new Rectangle(x * SPACINGX, y * SPACINGY, TILESCALEX, TILESCALEY), Color.White);
+                    }
+
+                    if (board[x,y].isFactory)
+                    {
+                        spriteBatch.Draw(upgradedMarker, new Rectangle(x * SPACINGX + 15, y * SPACINGY + 15, 16, 16), Color.White);
                     }
 
                     if (board[x, y].checkFire())
