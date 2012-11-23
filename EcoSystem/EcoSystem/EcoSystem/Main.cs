@@ -38,14 +38,14 @@ namespace EcoSystem
         const int TILESCALEX = 48;
         const int TILESCALEY = 50;
 
-        const int NARROWCOST = 1;
-        const int BROADCOST = 1;
+        const int NARROWCOST = 100;
+        const int BROADCOST = 150;
         const int FIRECOST = 300;
         const int WATERCOST = 50;
         const int UPGRADECOST = 500;
 
         const int CHANCEOFFIRESPREAD = 250;     //Lower is higher chance
-        const int CHANCEOFFIREEXTINGUISH = 650; //Lower is higher chance
+        const int CHANCEOFFIREEXTINGUISH = 1000; //Lower is higher chance
 
         const int RESOURCEGATHERDELAY = 30;
         int delaysSinceResourcesGathered;
@@ -64,6 +64,8 @@ namespace EcoSystem
 
         bool playerIsInMove = false;
         bool gameIsOver = false;
+
+        Random rnd = new Random();
         #endregion
 
         public Main()
@@ -315,12 +317,12 @@ namespace EcoSystem
                     if ((x + y) >= (BOARDSIZEX + BOARDSIZEY) / 2)
                     {
                         Texture2D rndText = defaultUrbanTextures[rnd.Next(0, defaultUrbanTextures.Count)];
-                        board[x, y] = new Tile(x, y, true, rndText);
+                        board[x, y] = new Tile(x, y, true, rndText, rnd.Next(0, 1000000));
                     }
                     else if ((x + y) < (BOARDSIZEX + BOARDSIZEY) / 2)
                     {
                         Texture2D rndText = defaultForestTextures[rnd.Next(0, defaultForestTextures.Count)];
-                        board[x, y] = new Tile(x, y, false, rndText);
+                        board[x, y] = new Tile(x, y, false, rndText, rnd.Next(0, 1000000));
                     }
                 }
             }
@@ -358,8 +360,8 @@ namespace EcoSystem
         {
             if (delaysSinceResourcesGathered == RESOURCEGATHERDELAY)
             {
-                players[0].resources += 10;
-                players[1].resources += 10;
+                players[0].resources += (10 + (players[0].numberOfFactories*5));
+                players[1].resources += (10 + (players[1].numberOfFactories*5));
                 delaysSinceResourcesGathered = 0;
             }
             else
@@ -439,17 +441,20 @@ namespace EcoSystem
             {
                 if(tile.checkDestroyed())
                 {
-                    Random rnd = new Random();
 
                     if (!tile.faction)
                     {
+                        if (board[(int)tile.position.X, (int)tile.position.Y].isFactory)
+                            players[0].numberOfFactories--;
                         Texture2D rndText = defaultUrbanTextures[rnd.Next(0,defaultUrbanTextures.Count)];
-                        board[(int)tile.position.X, (int)tile.position.Y] = new Tile((int)tile.position.X, (int)tile.position.Y, true, rndText);
+                        board[(int)tile.position.X, (int)tile.position.Y] = new Tile((int)tile.position.X, (int)tile.position.Y, true, rndText, rnd.Next(0, 1000000));
                     }
                     else if (tile.faction)
                     {
+                        if (board[(int)tile.position.X, (int)tile.position.Y].isFactory)
+                            players[1].numberOfFactories--;
                         Texture2D rndText = defaultForestTextures[rnd.Next(0, defaultForestTextures.Count)];
-                        board[(int)tile.position.X, (int)tile.position.Y] = new Tile((int)tile.position.X, (int)tile.position.Y, false, rndText);
+                        board[(int)tile.position.X, (int)tile.position.Y] = new Tile((int)tile.position.X, (int)tile.position.Y, false, rndText, rnd.Next(0, 1000000));
                     }
                 }
             }
@@ -493,7 +498,16 @@ namespace EcoSystem
         #region Attack methods
         private void upgradeUnit()
         {
-            Console.Write("Upgrade");
+            playerIsInMove = true;
+
+            if (selectedTile.faction == thisPlayer.faction && thisPlayer.resources >= UPGRADECOST && !board[(int)selectedTile.position.X, (int)selectedTile.position.Y].isFactory)
+            {
+                board[(int)selectedTile.position.X, (int)selectedTile.position.Y].upgrade();
+                thisPlayer.numberOfFactories++;
+                thisPlayer.resources -= UPGRADECOST;
+            }
+
+            playerIsInMove = false;
         }
 
         private void waterAttack()

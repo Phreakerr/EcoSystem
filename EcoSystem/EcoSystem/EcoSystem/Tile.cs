@@ -10,12 +10,13 @@ namespace EcoSystem
     class Tile
     {
         public Vector2 position { get; set; }
-        public bool faction { get; set; }  //True for urban, false for factory
+        public bool faction { get; set; }  //True for urban, false for forest
         public int health { get; set; }
         public Texture2D texture { get; set; }
+        public bool isFactory { get; set; }
 
-        const int chanceOfFireDamage = 60;
-        const int damageByFire = 5;
+        const int chanceOfFireDamage = 40;
+        const int damageByFire = 10;
 
         private int coordX;
         private int coordY;
@@ -27,7 +28,7 @@ namespace EcoSystem
 
         }
 
-        public Tile(int X, int Y, bool faction, Texture2D texture)
+        public Tile(int X, int Y, bool faction, Texture2D texture, int randomSeed)
         {
             coordX = X;
             coordY = Y;
@@ -35,7 +36,8 @@ namespace EcoSystem
             this.faction = faction;
             this.texture = texture;
             position = new Vector2(X, Y);
-            rndFireDamage = new Random();
+            rndFireDamage = new Random(randomSeed);
+            isFactory = false;
         }
 
         public void fireStart()
@@ -87,6 +89,12 @@ namespace EcoSystem
         public void doDamage(int damage)
         {
             health -= damage;
+        }
+
+        public void upgrade()
+        {
+            isFactory = true;
+            health = 250;
         }
     }
 }
