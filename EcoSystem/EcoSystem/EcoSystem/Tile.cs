@@ -14,6 +14,9 @@ namespace EcoSystem
         public int health { get; set; }
         public Texture2D texture { get; set; }
 
+        const int chanceOfFireDamage = 60;
+        const int damageByFire = 5;
+
         private int coordX;
         private int coordY;
         private bool isOnFire;
@@ -57,9 +60,9 @@ namespace EcoSystem
 
         public void fireDamage()
         {
-            if (isOnFire && rndFireDamage.Next(0, 60) == 7) //Lucky number 7
+            if (isOnFire && rndFireDamage.Next(0, chanceOfFireDamage) == 7) //Lucky number 7
             {
-                health -= 5;
+                health -= damageByFire;
             }
         }
 
@@ -79,6 +82,11 @@ namespace EcoSystem
             {
                 return false;
             }
+        }
+
+        public void doDamage(int damage)
+        {
+            health -= damage;
         }
     }
 }

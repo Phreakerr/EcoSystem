@@ -7,12 +7,14 @@ namespace EcoSystem
 {
     class Player
     {
+        public bool faction;
         public int resources;
         public int numberOfFactories;
         public bool citadelStanding;
 
-        public Player()
+        public Player(bool faction)
         {
+            this.faction = faction;
             resources = 0;
             numberOfFactories = 0;
             citadelStanding = true;
